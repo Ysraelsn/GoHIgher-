@@ -31,7 +31,7 @@ Este juego fue construido desde cero con un enfoque minimalista:
 
 - ZzFX (Zuper Zmall Zound Zynth): Una micro-librería (<1KB) incrustada directamente en el script para generar todos los efectos de sonido (salto y game over) en tiempo real.
 
-✨ Características Principales
+## ✨ Características Principales
 
 - Jugabilidad Infinita: Las plataformas se generan proceduralmente a medida que el jugador asciende. ¡El único límite es tu habilidad!
 
