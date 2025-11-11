@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Go Higher!</title>
+        <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #222;
+            font-family: monospace;
+            overflow: hidden;
+        }
+        canvas {
+            box-shadow: 0px 0px 20px rgba(0,0,0,0.5);
+        }
+        #instructions {
+            position: absolute;
+            color: white;
+            top: 10px;
+            text-align: center;
+            width: 100%;
+            pointer-events: none; 
+            margin-top: 20px;
+        }
+    </style>
+    </head>
+    <body>
+        <div id="instructions">Usa Flechas/A-D para moverte. ESPACIO para
+            saltar.</div>
+        <canvas id="gameCanvas"></canvas>
+
+        <script>
+
+    //Config Inicial
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 600;
+    canvas.height = 800;
+    
+
+    //Variables globales
+    let score = 0;
+    let highScore = localStorage.getItem('highScore') || 0;
+    let gameOver = false;
+    let keys = {};
+
+    const player = {
+        x: canvas.width / 2 - 15,
+        y: canvas.height - 100,
+        width: 30,
+        height: 30,
+        color: '#FF5733',
+        vy: 0,
+        vx: 0,
+        jumpStr: -13,  
+        gravity: 0.4,  
+        speed: 4,
+        onGround: false 
+    };
+
+    let platforms = [];
+    const platWidth = 80;
+    const platHeight = 15;
+    const platCount = 10;
+
+    function init() {
+        score = 0;
+        gameOver = false;
+        player.y = canvas.height - 100;
+        player.x = canvas.width / 2 - player.width / 2;
+        player.vy = 0;
+        player.vx = 0;
+        player.onGround = false;
+        
+        platforms = [];
+
+        //Crear la primer plataforma debajo del jugador
+        platforms.push({ x: canvas.width / 2 - platWidth / 2, y: canvas.height - 50, w: platWidth, h: platHeight });
+
+        //Genrar el resto de plataformas
+        for (let i = 1; i < platCount; i++) {
+            platforms.push({
+                x: Math.random() * (canvas.width - platWidth),
+                y: canvas.height - 50 - (i * (canvas.height / platCount)),
+                w: platWidth, h: platHeight
+            });
+        }
+    }
+
+    // Si el juego termina presionar Enter
+    function update() {
+        if (gameOver) {
+            if (keys['Enter']) init(); 
+            return;
+        }
+
+        // Movimiento lateral
+        if (keys['ArrowLeft'] || keys['a']) player.vx = -player.speed;
+        else if (keys['ArrowRight'] || keys['d']) player.vx = player.speed;
+        else player.vx *= 0.8;
+
+        player.x += player.vx;
+        // Aplicar gravedad siempre primero
+        player.vy += player.gravity;
+        player.y += player.vy;
+
+        player.onGround = false; // Asumimos que está en el aire hasta probar lo contrario
+
+        // Pantalla infinita lateral
+        if (player.x + player.width < 0) player.x = canvas.width;
+        if (player.x > canvas.width) player.x = -player.width;
+
+        // -- COLISIONES --
+        if (player.vy > 0) { // Solo chequeamos colisión si está cayendo
+            platforms.forEach(p => {
+                if (player.x < p.x + p.w &&
+                    player.x + player.width > p.x &&
+                    player.y + player.height > p.y &&
+                    player.y + player.height < p.y + p.h + player.vy) {
+                    
+                    // Colisión detectada: poner al jugador justo encima de la plataforma
+                    player.y = p.y - player.height;
+                    player.vy = 0;
+                    player.onGround = true; // ¡Está en el suelo!
+                }
+            });
+        }
+
+        // -- SALTO MANUAL --
+        // Si está en el suelo Y se presiona espacio
+        if (player.onGround && keys[' ']) {
+            player.vy = player.jumpStr;
+            player.onGround = false;
+        }
+
+        // -- CÁMARA / SCROLL --
+        if (player.y < canvas.height / 2) {
+            let offset = (canvas.height / 2) - player.y;
+            player.y = canvas.height / 2;
+            platforms.forEach(p => p.y += offset);
+            score += Math.floor(offset);
+            if (score > highScore) highScore = score;
+        }
+
+        // -- RECICLAJE --
+        platforms.forEach((p) => {
+            if (p.y > canvas.height) {
+                let highestY = canvas.height;
+                platforms.forEach(plat => { if (plat.y < highestY) highestY = plat.y; });
+                // Ajusté un poco la distancia de generación para que sea alcanzable con salto manual
+                p.y = highestY - (Math.random() * 100 + 60); 
+                p.x = Math.random() * (canvas.width - p.w);
+            }
+        });
+
+        if (player.y > canvas.height) {
+            gameOver = true;
+            localStorage.setItem('highScore', highScore);
+        }
+    }
+
+    function draw() {
+        ctx.fillStyle = '#333';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#00FFAA';
+        platforms.forEach(p => ctx.fillRect(p.x, p.y, p.w, p.h));
+
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+        ctx.fillStyle = 'white';
+        let eyeDir = player.vx >= 0 ? 1 : -1;
+        ctx.fillRect(player.x + 8 + (4*eyeDir), player.y + 8, 5, 5);
+        ctx.fillRect(player.x + 18 + (4*eyeDir), player.y + 8, 5, 5);
+
+        ctx.fillStyle = 'white';
+        ctx.font = '20px monospace';
+        ctx.fillText(`Score: ${score}`, 10, 40); // Bajé un poco el texto por las instrucciones
+        ctx.font = '14px monospace';
+        ctx.fillText(`Best: ${highScore}`, 10, 60);
+
+        if (gameOver) {
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.font = '40px monospace';
+            ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
+            ctx.font = '20px monospace';
+            ctx.fillText('Presiona ENTER', canvas.width/2, canvas.height/2 + 40);
+            ctx.textAlign = 'left';
+        }
+    }
+
+    function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('keydown', e => {
+        keys[e.key] = true;
+        if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].indexOf(e.key) > -1) {
+            e.preventDefault();
+        }
+    });
+    window.addEventListener('keyup', e => keys[e.key] = false);
+
+    init();
+    loop();
+</script>
+    </body>
+</html>
