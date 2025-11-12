@@ -2,7 +2,10 @@
 
 ¡Bienvenido a GoHigher! Un adictivo juego de plataformas vertical hecho en JavaScript puro. El objetivo es simple: ¡llega lo más alto que puedas!
 
-<img width="781" height="906" alt="imagen" src="https://github.com/user-attachments/assets/d1a43a64-387d-425b-b0b6-30a47d782410" />
+Este proyecto comenzó como un desafío inspirado en [js13kGames](https://js13kgames.com/), pero ha evolucionado para incluir una banda sonora completa en MP3 y múltiples mecánicas de juego como plataformas móviles y quebradizas.
+
+![Demo de Salto Infinito con nuevas plataformas](https://github.com/user-attachments/assets/9a8f058b-ee86-43e2-9018-da86ad3ddbe0)
+
 
 ## 🕹️ Cómo Jugar
 
@@ -10,13 +13,20 @@ No requiere instalación, dependencias, ni servidores.
 
 Simplemente abre el archivo .html en tu navegador web favorito (Chrome, Firefox, Edge, etc.) y ¡empieza a jugar!
 
-> Controles
+### Controles
 
     ⬅️ / ➡️ (o teclas A / D): Moverse de lado a lado.
 
     Barra Espaciadora: Saltar.
 
     ENTER: Reiniciar el juego (después de perder).
+### Plataformas
+
+<span style="color:#00FFAA;">■</span> Plataforma Verde: Normal y segura.
+
+<span style="color:#FFC300;">■</span> Plataforma Amarilla: Móvil. ¡Se mueve de lado a lado!
+
+<span style="color:#E74C3C;">■</span> Plataforma Roja: Quebradiza. ¡Se rompe y desaparece después de saltar de ella!
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -32,29 +42,30 @@ Este juego fue construido desde cero con un enfoque minimalista:
 
 ## ✨ Características Principales
 
-- Jugabilidad Infinita: Las plataformas se generan proceduralmente a medida que el jugador asciende. ¡El único límite es tu habilidad!
+- Plataformas Dinámicas: ¡No todas las plataformas son seguras! El juego incluye plataformas móviles (amarillas) que te transportan y plataformas quebradizas (rojas) que se rompen al saltar.
 
-- Tamaño Mínimo: Todo el juego (código, gráficos, sonidos) está contenido en un solo archivo HTML y pesa menos de 10KB.
+- Nivel Infinito Procedural: Las plataformas se generan proceduralmente a medida que el jugador asciende.
 
-- Audio Híbrido: Utiliza lo mejor de dos mundos: música MP3 de alta calidad para el ambiente y efectos de sonido procedurales (ZzFX) para una respuesta instantánea y ligera.
+- Audio Híbrido: Música MP3 para el ambiente y efectos de sonido ZzFX para una respuesta instantánea.
 
-- Scroll Vertical: La "cámara" sigue al jugador a medida que sube, creando la ilusión de un mundo infinito hacia arriba.
+- Scroll Vertical: La "cámara" sigue al jugador a medida que sube.
 
-- Reciclaje de Plataformas: Para optimizar la memoria, solo existe un número fijo de plataformas. Cuando una sale de la pantalla por abajo, se "recicla" y se mueve a la parte superior.
+- Reciclaje de Plataformas: Optimización de memoria que reutiliza las plataformas que salen de la pantalla.
+
+- Portabilidad Total: Corre en cualquier navegador moderno sin necesidad de un servidor.
 
 ## 🎯 Futuras Ideas (To-Do)
 
 El juego base está completo, pero aquí hay algunas ideas para expandirlo:
 
-- Plataformas Móviles: Plataformas que se mueven horizontal o verticalmente.
+- [x] ~~Plataformas Móviles:~~ (¡Hecho!)
+- [x] ~~Plataformas Quebradizas~~ (¡Hecho!)
 
-- Plataformas Quebradizas: Plataformas que desaparecen después de tocarlas.
+- [ ] Power-ups: Como un "super salto" o un "escudo" temporal.
 
-- Power-ups: Como un "super salto" o un "escudo" temporal.
+- [ ] Enemigos: Obstáculos simples que te hacen perder.
 
-- Enemigos: Obstáculos simples que te hacen perder.
-
-- Mejores Gráficos: Reemplazar los rectángulos con sprites (imágenes de personajes y plataformas).
+- [ ] Mejores Gráficos: Reemplazar los rectángulos con sprites (imágenes de personajes y plataformas).
 
 ## 🙏 Créditos y Agradecimientos
 
