@@ -149,7 +149,7 @@ const player = {
   color: "#FF5733",
   vy: 0,
   vx: 0,
-  jumpStr: -13,
+  jumpStr: -12,
   gravity: 0.4,
   speed: 4,
   onGround: false,
@@ -179,8 +179,9 @@ function init() {
     y: canvas.height - 50,
     w: platWidth,
     h: platHeight,
-    isMoving: false,
+    isMoving: false, //Plataforma movil
     vx: 0,
+    isBrittle: false, //Plataforma quebradiza
   });
 
   //Genrar el resto de plataformas
@@ -192,15 +193,20 @@ function init() {
       h: platHeight,
       isMoving: false,
       vx: 0,
+      isBrittle: false,
     };
 
-    //Probabilidad de que la plataforma sea móvil
-    if (Math.random() < 0.8) {
+    //Probabilidad de que la plataforma sea móvil o quebradiza
+    let typeRoll = Math.random();
+    if (typeRoll < 0.25) {
+      // 25% de ser móvil
       newPlat.isMoving = true;
-
-      //Velocidad de la plataforma
       newPlat.vx = (Math.random() * 1.5 + 1) * (Math.random() < 0.5 ? 1 : -1);
+    } else if (typeRoll < 0.4) {
+      // 15% de ser quebradiza (total 40%)
+      newPlat.isBrittle = true;
     }
+    // El 60% restante será una plataforma normal y estática
 
     platforms.push(newPlat);
   }
@@ -270,6 +276,13 @@ function update() {
     player.vy = player.jumpStr;
     player.onGround = false;
     zzfx(...soundJump);
+
+    //Romper plataforma quebradiza
+    if (player.groundPlatform && player.groundPlatform.isBrittle) {
+      // La "rompemos" mandándola muy abajo para que sea reciclada
+      player.groundPlatform.y = canvas.height + 100; // Adiós!
+      player.groundPlatform = null; // Ya no estamos parados en ella
+    }
   }
 
   //Para que el jugador no se caiga de la plataforma movil
@@ -297,14 +310,21 @@ function update() {
       p.y = highestY - (Math.random() * 100 + 60);
       p.x = Math.random() * (canvas.width - p.w);
 
-      // NUEVO: Resetear/Re-randomizar el movimiento
-      if (Math.random() < 0.3) {
+      //  Resetear y re-asignar tipo de plataforma
+      p.isMoving = false;
+      p.isBrittle = false;
+      p.vx = 0;
+
+      let typeRoll = Math.random();
+      if (typeRoll < 0.25) {
+        // 25% de ser móvil
         p.isMoving = true;
         p.vx = (Math.random() * 1.5 + 1) * (Math.random() < 0.5 ? 1 : -1);
-      } else {
-        p.isMoving = false;
-        p.vx = 0;
+      } else if (typeRoll < 0.4) {
+        // 15% de ser quebradiza
+        p.isBrittle = true;
       }
+      // El 60% restante será normal
     }
   });
 
@@ -325,9 +345,14 @@ function draw() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   //Color de plataformas
-  ctx.fillStyle = "#00FFAA";
   platforms.forEach((p) => {
-    ctx.fillStyle = p.isMoving ? "#FFC300" : "#00FFAA";
+    if (p.isBrittle) {
+      ctx.fillStyle = "#E74C3C"; // Rojo para quebradizas
+    } else if (p.isMoving) {
+      ctx.fillStyle = "#FFC300"; // Amarillo para móviles
+    } else {
+      ctx.fillStyle = "#00FFAA"; // Verde para normales
+    }
     ctx.fillRect(p.x, p.y, p.w, p.h);
   });
 
