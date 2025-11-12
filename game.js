@@ -140,6 +140,7 @@ const soundGameOver = [
   0.17,
 ];
 
+//Jugador
 const player = {
   x: canvas.width / 2 - 15,
   y: canvas.height - 100,
@@ -152,8 +153,10 @@ const player = {
   gravity: 0.4,
   speed: 4,
   onGround: false,
+  groundPlatform: null,
 };
 
+//Plataformas
 let platforms = [];
 const platWidth = 80;
 const platHeight = 15;
@@ -176,16 +179,30 @@ function init() {
     y: canvas.height - 50,
     w: platWidth,
     h: platHeight,
+    isMoving: false,
+    vx: 0,
   });
 
   //Genrar el resto de plataformas
   for (let i = 1; i < platCount; i++) {
-    platforms.push({
+    let newPlat = {
       x: Math.random() * (canvas.width - platWidth),
       y: canvas.height - 50 - i * (canvas.height / platCount),
       w: platWidth,
       h: platHeight,
-    });
+      isMoving: false,
+      vx: 0,
+    };
+
+    //Probabilidad de que la plataforma sea móvil
+    if (Math.random() < 0.8) {
+      newPlat.isMoving = true;
+
+      //Velocidad de la plataforma
+      newPlat.vx = (Math.random() * 1.5 + 1) * (Math.random() < 0.5 ? 1 : -1);
+    }
+
+    platforms.push(newPlat);
   }
   if (audioInited) {
     // Solo si el usuario ya interactuó
@@ -212,10 +229,21 @@ function update() {
   player.y += player.vy;
 
   player.onGround = false; // Asumimos que está en el aire hasta probar lo contrario
+  player.groundPlatform = null;
 
   // Pantalla infinita lateral
   if (player.x + player.width < 0) player.x = canvas.width;
   if (player.x > canvas.width) player.x = -player.width;
+
+  //Mover y rebotar plataformas moviles
+  platforms.forEach((p) => {
+    if (p.isMoving) {
+      p.x += p.vx;
+      if (p.x < 0 || p.x + p.w > canvas.width) {
+        p.vx *= -1;
+      }
+    }
+  });
 
   // -- COLISIONES --
   if (player.vy > 0) {
@@ -231,6 +259,7 @@ function update() {
         player.y = p.y - player.height;
         player.vy = 0;
         player.onGround = true; // ¡Está en el suelo!
+        player.groundPlatform = p;
       }
     });
   }
@@ -241,6 +270,11 @@ function update() {
     player.vy = player.jumpStr;
     player.onGround = false;
     zzfx(...soundJump);
+  }
+
+  //Para que el jugador no se caiga de la plataforma movil
+  if (player.groundPlatform && player.groundPlatform.isMoving) {
+    player.x += player.groundPlatform.vx;
   }
 
   // -- CÁMARA / SCROLL --
@@ -259,9 +293,18 @@ function update() {
       platforms.forEach((plat) => {
         if (plat.y < highestY) highestY = plat.y;
       });
-      // Ajusté un poco la distancia de generación para que sea alcanzable con salto manual
+
       p.y = highestY - (Math.random() * 100 + 60);
       p.x = Math.random() * (canvas.width - p.w);
+
+      // NUEVO: Resetear/Re-randomizar el movimiento
+      if (Math.random() < 0.3) {
+        p.isMoving = true;
+        p.vx = (Math.random() * 1.5 + 1) * (Math.random() < 0.5 ? 1 : -1);
+      } else {
+        p.isMoving = false;
+        p.vx = 0;
+      }
     }
   });
 
@@ -277,11 +320,16 @@ function update() {
 }
 
 function draw() {
+  //Color de fondo
   ctx.fillStyle = "#333";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  //Color de plataformas
   ctx.fillStyle = "#00FFAA";
-  platforms.forEach((p) => ctx.fillRect(p.x, p.y, p.w, p.h));
+  platforms.forEach((p) => {
+    ctx.fillStyle = p.isMoving ? "#FFC300" : "#00FFAA";
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+  });
 
   ctx.fillStyle = player.color;
   ctx.fillRect(player.x, player.y, player.width, player.height);
@@ -292,7 +340,7 @@ function draw() {
 
   ctx.fillStyle = "white";
   ctx.font = "20px monospace";
-  ctx.fillText(`Score: ${score}`, 10, 40); // Bajé un poco el texto por las instrucciones
+  ctx.fillText(`Score: ${score}`, 10, 40);
   ctx.font = "14px monospace";
   ctx.fillText(`Best: ${highScore}`, 10, 60);
 
